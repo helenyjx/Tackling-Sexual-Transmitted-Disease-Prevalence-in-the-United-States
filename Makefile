@@ -1,27 +1,23 @@
 install:
-	pip install --upgrade pip &&\
-		pip install -r requirements.txt
+	cargo clean &&\
+		cargo build -j 1
 
-test:
-	python -m pytest -vv --cov=main --cov=mylib test_*.py
+build:
+	docker build -t movie .
 
-format:	
-	black *.py logic/*.py
+rundocker:
+	docker run -it --rm -p 8080:8080 movie
+
+format:
+	cargo fmt --quiet
 
 lint:
-	pylint --disable=R,C --ignore-patterns=test_.*?py --extension-pkg-whitelist='pydantic' *.py logic/*.py
+	cargo clippy --quiet
 
-container-lint:
-	docker run --rm -i hadolint/hadolint < Dockerfile
+test:
+	cargo test --quiet
 
-refactor: format lint
+run:
+	cargo run 
 
-deploy:
-	#example deploy to aws
-	#pushes container to ECR (your info will be different!)
-	#aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 561744971673.dkr.ecr.us-east-1.amazonaws.com
-	#docker build -t cdfastapi .
-	#docker tag cdfastapi:latest 561744971673.dkr.ecr.us-east-1.amazonaws.com/cdfastapi:latest
-	#docker push 561744971673.dkr.ecr.us-east-1.amazonaws.com/cdfastapi:latest
-
-all: install lint test format deploy
+all: format lint test run
